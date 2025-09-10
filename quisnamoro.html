@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Quiz — Pedido de Namoro 💖</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;800&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      --bg: #0f0f14;
+      --card: #151823;
+      --text: #f7f7fb;
+      --subtext:#aab0c0;
+      --accent:#ff5d8f;
+      --accent-2:#7c5cff;
+      --ring: rgba(255, 93, 143, .4);
+    }
+    *{ box-sizing: border-box; }
+    html,body{ height:100%; }
+    body{
+      margin:0; font-family:"Poppins", system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
+      background: radial-gradient(1200px 700px at 80% -10%, rgba(124,92,255,.25), transparent 50%),
+                  radial-gradient(1000px 700px at 0% 110%, rgba(255,93,143,.18), transparent 50%),
+                  var(--bg);
+      color:var(--text);
+      display:grid; place-items:center;
+      overflow-x:hidden;
+      padding:24px;
+    }
+
+    .hearts{ position: fixed; inset:0; overflow:hidden; pointer-events:none; z-index:0; }
+    .heart{ position:absolute; width:12px; height:12px; opacity:.12; transform:rotate(45deg); animation: floatUp linear infinite; }
+    .heart:before, .heart:after{ content:""; position:absolute; width:100%; height:100%; background:currentColor; border-radius:50%; }
+    .heart:before{ left:-50%; }
+    .heart:after{ top:-50%; }
+    @keyframes floatUp{ from{ transform:translateY(10vh) rotate(45deg) scale(.8); } to{ transform:translateY(-110vh) rotate(45deg) scale(1.2);} }
+
+    .wrap{ width:min(100%, 1100px); padding:24px; z-index:1; }
+    .card{
+      position:relative;
+      background: linear-gradient(180deg, rgba(255,255,255,.02), rgba(255,255,255,.01)), var(--card);
+      border: 1px solid rgba(255,255,255,.06);
+      border-radius: 28px;
+      box-shadow: 0 20px 60px rgba(0,0,0,.45), 0 0 0 8px rgba(255,255,255, .02) inset;
+      padding: clamp(18px, 4vw, 44px);
+      overflow:hidden;
+      min-height:380px;
+    }
+    .ring{ position:absolute; inset:-140px -140px auto auto; width:380px; height:380px; border-radius:50%;
+           background: radial-gradient(closest-side, var(--ring), transparent 70%);
+           filter: blur(18px);}    
+    header{ display:flex; align-items:center; gap:14px; margin-bottom:12px; }
+    .pill{ font-size:12px; text-transform:uppercase; letter-spacing:.2em; color:var(--subtext);
+      border:1px solid rgba(255,255,255,.08); padding:8px 12px; border-radius:999px; backdrop-filter: blur(6px); }
+
+    .title{ font-size: clamp(20px, 3.6vw, 44px); line-height:1.1; margin:6px 0 8px; font-weight:800;
+      background: linear-gradient(90deg, var(--text), #e7dfff 40%, #ffdeeb 80%);
+      -webkit-background-clip:text; background-clip:text; color:transparent; }
+    .subtitle{ margin:0; color:var(--subtext); font-size:14px }
+
+    .quiz-stage{ display:flex; gap:24px; align-items:flex-start; }
+    .left{ flex:1; }
+    .photoWrap{ width:320px; display:grid; place-items:center; }
+    .photo{ width:100%; border-radius:22px; border:2px solid rgba(255,255,255,.08); box-shadow: 0 12px 40px rgba(0,0,0,.45); }
+
+    .question{ margin-top:18px; font-size:18px; font-weight:600 }
+    .options{ margin-top:12px; display:grid; gap:10px }
+    .opt{ background: rgba(255,255,255,.02); border:1px solid rgba(255,255,255,.04); padding:12px 14px; border-radius:12px; cursor:pointer; transition:transform .12s ease, box-shadow .12s ease; }
+    .opt:hover{ transform:translateY(-3px); }
+    .opt.selected{ box-shadow: 0 12px 30px rgba(124,92,255,.18); border-color: rgba(255,255,255,.08); }
+
+    .progress{ height:10px; background:rgba(255,255,255,.04); border-radius:999px; overflow:hidden; margin-top:16px }
+    .progress > i{ display:block; height:100%; width:0%; background:linear-gradient(90deg,var(--accent),var(--accent-2)); }
+
+    .controls{ margin-top:18px; display:flex; gap:10px; }
+    .btn{ appearance:none; border:none; cursor:pointer;
+      background: linear-gradient(135deg, var(--accent), var(--accent-2));
+      color:white; padding:12px 18px; border-radius:14px; font-weight:700; font-size:15px;
+      box-shadow: 0 10px 24px rgba(124,92,255,.35); }
+    .btn.ghost{ background:transparent; border:1px solid rgba(255,255,255,.12); }
+
+    /* Modal proposta */
+    .overlay{ position:fixed; inset:0; display:none; place-items:center; z-index:10; }
+    .overlay.active{ display:grid; }
+    .proposal{ width:min(820px, 96%); background: linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.01)), var(--card); border-radius:20px; padding:28px; text-align:center; box-shadow: 0 30px 80px rgba(0,0,0,.6); }
+    .proposal h2{ font-size:34px; margin:6px 0 8px }
+    .proposal p{ color:var(--subtext); margin-bottom:18px }
+    .proposal .big{ font-size:46px; font-weight:800; background: linear-gradient(90deg, #fff, #ffd1e0 40%); -webkit-background-clip:text; background-clip:text; color:transparent }
+
+    .confetti{ position:absolute; inset:0; pointer-events:none; }
+
+    footer{ margin-top:16px; color:var(--subtext); font-size:12px; text-align:center }
+
+    @media (max-width:860px){ .quiz-stage{ flex-direction:column-reverse } .photoWrap{ width:100% } }
+  </style>
+</head>
+<body>
+  <audio id="bgMusic" autoplay loop>
+    <source src="Taylor Swift - So High School (Lyrics) [fwma5KbLL7I].mp3" type="audio/mpeg">
+    Seu navegador não suporta áudio HTML5.
+  </audio>
+
+  <div class="hearts" id="hearts" aria-hidden="true"></div>
+
+  <main class="wrap">
+    <div class="card">
+      <span class="ring" aria-hidden="true"></span>
+      <header>
+        <span class="pill">Quiz Especial</span>
+      </header>
+
+      <h1 class="title">Um quiz só nosso</h1>
+      <p class="subtitle">Responda com o coração — no final tem uma surpresa 💌</p>
+
+      <section class="quiz-stage">
+        <div class="left">
+          <div id="questionBox">
+            <!-- Perguntas aqui -->
+          </div>
+
+          <div class="progress" aria-hidden="true"><i id="bar"></i></div>
+
+          <div class="controls">
+            <button class="btn ghost" id="prevBtn">Voltar</button>
+            <button class="btn" id="nextBtn">Próxima</button>
+            <a class="btn ghost" href="correcaositebruna.html">Página inicial</a>
+          </div>
+
+          <footer>Feito com carinho para  minha princesa.</footer>
+        </div>
+
+        <div class="photoWrap">
+          <img id="sidePhoto" class="photo" src="WhatsApp Image 2025-08-26 at 11.06.30.jpeg" alt="Foto de vocês" />
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <!-- Modal / Proposta -->
+  <div class="overlay" id="overlay" role="dialog" aria-modal="true">
+    <div class="proposal" id="proposal">
+      <h2 id="proposalTitle">—</h2>
+      <p id="proposalSubtitle">—</p>
+      <div class="big" id="proposalBig">—</div>
+
+      <div style="margin-top:18px; display:flex; gap:12px; justify-content:center;">
+        <button class="btn" id="yesBtn">Sim 💖</button>
+        <button class="btn ghost" id="noBtn">Não</button>
+      </div>
+    </div>
+    <canvas class="confetti" id="confettiCanvas"></canvas>
+  </div>
+
+  <script>
+    // ===== CONFIGURAÇÃO RÁPIDA =====
+    // Edite aqui: NOME da pessoa, texto do pedido, limiar de carinho (0-100)
+    const TARGET_NAME = 'Bruna';
+    const PROPOSAL_TEXT = `Quer namorar comigo, ${TARGET_NAME}?`;
+    const THRESHOLD = 10; // pontos mínimos para a versão mais romântica
+
+    // ===== Perguntas do quiz =====
+    // Cada opção tem um texto e um valor (pontos). Você pode editar livremente.
+    const QUESTIONS = [
+      { q: 'Qual é o seu programa perfeito de fim de semana?', opts:[
+        {t:'Filmes e pipoca em casa', v:2},
+        {t:'Piquenique no parque', v:3},
+        {t:'Show/concerto juntos', v:2},
+        {t:'Cozinhar algo novo a dois', v:4}
+      ]},
+      { q: 'O que mais te conquista?', opts:[
+        {t:'Senso de humor', v:2},
+        {t:'Gentileza e atenção', v:4},
+        {t:'Ambição e sonhos', v:1},
+        {t:'Jeito carinhoso', v:5}
+      ]},
+      { q: 'Qual seria a viagem dos sonhos?', opts:[
+        {t:'Praia isolada', v:3},
+        {t:'Europa histórica', v:2},
+        {t:'Trilha e natureza', v:2},
+        {t:'Cidade com muita arte e cafés', v:3}
+      ]},
+      { q: 'Como prefere demonstrar carinho?', opts:[
+        {t:'Pequenos bilhetes', v:4},
+        {t:'Presentes-surpresa', v:2},
+        {t:'Tempo de qualidade', v:5},
+        {t:'Palavras doces', v:3}
+      ]},
+      { q: 'Se pudesse escolher, qual seria o primeiro encontro perfeito?', opts:[
+        {t:'Caminhar ao pôr do sol', v:4},
+        {t:'Jantar elegante', v:2},
+        {t:'Feira de rua/mercado', v:1},
+        {t:'Sessão de fotos espontânea', v:3}
+      ]}
+    ];
+
+    // ===== lógica do quiz =====
+    let idx = 0;
+    const answers = new Array(QUESTIONS.length).fill(null);
+
+    const questionBox = document.getElementById('questionBox');
+    const bar = document.getElementById('bar');
+    const prevBtn = document.getElementById('prevBtn');
+    const nextBtn = document.getElementById('nextBtn');
+
+    function renderQuestion(i){
+      const item = QUESTIONS[i];
+      questionBox.innerHTML = `
+        <div class=\"question\">${i+1}. ${item.q}</div>
+        <div class=\"options\" id=\"opts\">${item.opts.map((o,j)=>
+          `<div class=\"opt\" data-idx=\"${j}\">${o.t}</div>`).join('')}</div>
+      `;
+
+      // aplicar seleção se já respondeu
+      const opts = document.querySelectorAll('.opt');
+      opts.forEach(el=>{
+        el.addEventListener('click', ()=>{
+          opts.forEach(x=>x.classList.remove('selected'));
+          el.classList.add('selected');
+          answers[i] = parseInt(el.dataset.idx,10);
+        });
+      });
+
+      // marcar se já escolhido
+      if(answers[i] !== null){
+        const chosen = document.querySelector(`.opt[data-idx=\"${answers[i]}\"]`);
+        if(chosen) chosen.classList.add('selected');
+      }
+
+      // atualizar barra
+      const perc = Math.round((i/ (QUESTIONS.length-1)) * 100);
+      bar.style.width = perc + '%';
+
+      // botões
+      prevBtn.disabled = (i===0);
+      nextBtn.textContent = (i===QUESTIONS.length-1) ? 'Finalizar' : 'Próxima';
+    }
+
+    prevBtn.addEventListener('click', ()=>{
+      if(idx>0) idx--; renderQuestion(idx);
+    });
+
+    nextBtn.addEventListener('click', ()=>{
+      // impedir avançar sem escolher
+      if(answers[idx] === null){
+        alert('Escolha uma opção antes de continuar ❤️');
+        return;
+      }
+      if(idx < QUESTIONS.length-1){ idx++; renderQuestion(idx); }
+      else finishQuiz();
+    });
+
+    function finishQuiz(){
+      // calcular pontuação
+      let total = 0;
+      for(let i=0;i<QUESTIONS.length;i++){
+        const a = answers[i];
+        if(a!==null) total += QUESTIONS[i].opts[a].v;
+      }
+
+      // abrir modal de proposta
+      openProposal(total);
+    }
+
+    // ===== Modal / Proposta =====
+    const overlay = document.getElementById('overlay');
+    const proposalTitle = document.getElementById('proposalTitle');
+    const proposalSubtitle = document.getElementById('proposalSubtitle');
+    const proposalBig = document.getElementById('proposalBig');
+    const yesBtn = document.getElementById('yesBtn');
+    const noBtn = document.getElementById('noBtn');
+
+    function openProposal(score){
+      // personaliza texto baseado na pontuação
+      proposalTitle.textContent = `Para ${TARGET_NAME}, com muito carinho`;
+      if(score >= THRESHOLD){
+        proposalSubtitle.textContent = 'Você acertou meu coração em cheio 💘';
+        proposalBig.textContent = PROPOSAL_TEXT;
+      } else {
+        proposalSubtitle.textContent = 'Temos muito carinho aqui — e um pedido sincero ✨';
+        proposalBig.textContent = PROPOSAL_TEXT;
+      }
+
+      overlay.classList.add('active');
+      startConfetti();
+    }
+
+    yesBtn.addEventListener('click', ()=>{
+      // efeito: confetes e mensagem final
+      proposalTitle.textContent = 'Ela disse: SIM! 🎉';
+      proposalSubtitle.textContent = 'Meu coração explodiu de alegria.';
+      proposalBig.textContent = `Somos oficialmente namorados — ${TARGET_NAME} & Jose 💖`;
+      yesBtn.disabled = true; noBtn.disabled = true;
+    });
+
+    noBtn.addEventListener('click', ()=>{
+      proposalTitle.textContent = 'vai aceitar sim';
+      proposalSubtitle.textContent = 'nao tem essa de não quero 😊💕';
+      proposalBig.textContent = 'te amo doida.';
+      yesBtn.disabled = true; noBtn.disabled = true;
+    });
+
+    // ===== Corações de fundo =====
+    const hearts = document.getElementById('hearts');
+    const COLORS = ['#ff5d8f', '#ff9bb8', '#7c5cff', '#ffd1e0'];
+    const HCOUNT = Math.min(80, Math.floor(window.innerWidth/10));
+    for(let i=0;i<HCOUNT;i++){
+      const h = document.createElement('div');
+      h.className = 'heart';
+      h.style.left = Math.random()*100 + 'vw';
+      h.style.bottom = (-10 + Math.random()*10) + 'vh';
+      h.style.animationDuration = (6 + Math.random()*10) + 's';
+      h.style.animationDelay = (-10 + Math.random()*10) + 's';
+      h.style.color = COLORS[Math.floor(Math.random()*COLORS.length)];
+      h.style.transform = `rotate(45deg) scale(${0.6 + Math.random()*1.2})`;
+      hearts.appendChild(h);
+    }
+
+    // ===== Confetti (canvas simples) =====
+    const canvas = document.getElementById('confettiCanvas');
+    const ctx = canvas.getContext('2d');
+    let confettiPieces = [];
+    function resizeCanvas(){ canvas.width = overlay.offsetWidth; canvas.height = overlay.offsetHeight; }
+    window.addEventListener('resize', resizeCanvas);
+
+    function startConfetti(){
+      resizeCanvas();
+      confettiPieces = [];
+      for(let i=0;i<120;i++){
+        confettiPieces.push({
+          x: Math.random()*canvas.width,
+          y: Math.random()*canvas.height - canvas.height/2,
+          r: (Math.random()*6)+4,
+          d: Math.random()*20 + 10,
+          color: COLORS[Math.floor(Math.random()*COLORS.length)],
+          tilt: Math.random()*10 - 10
+        });
+      }
+      requestAnimationFrame(updateConfetti);
+    }
+    let confettiRunning = true;
+    function updateConfetti(){
+      if(!overlay.classList.contains('active')) return;
+      ctx.clearRect(0,0,canvas.width,canvas.height);
+      for(let i=0;i<confettiPieces.length;i++){
+        const p = confettiPieces[i];
+        p.y += Math.cos(p.d) + 1 + p.r/5;
+        p.x += Math.sin(p.d);
+        p.tilt += 0.1;
+        ctx.save();
+        ctx.fillStyle = p.color;
+        ctx.translate(p.x, p.y);
+        ctx.rotate(p.tilt * Math.PI/180);
+        ctx.fillRect(0,0,p.r, p.r/2);
+        ctx.restore();
+        if(p.y > canvas.height + 20){ p.y = -10; p.x = Math.random()*canvas.width; }
+      }
+      if(confettiRunning) requestAnimationFrame(updateConfetti);
+    }
+
+    // ===== Inicialização =====
+    function init(){
+      // render primeira pergunta
+      renderQuestion(idx);
+
+      // permitir teclado: 1-4 para selecionar
+      document.addEventListener('keydown', (e)=>{
+        if(document.activeElement.tagName.toLowerCase() === 'input') return;
+        const optsEls = document.querySelectorAll('.opt');
+        if(optsEls.length){
+          if(['1','2','3','4'].includes(e.key)){
+            const k = parseInt(e.key,10)-1;
+            if(optsEls[k]) optsEls[k].click();
+          }
+          if(e.key === 'Enter') nextBtn.click();
+        }
+      });
+    }
+
+    init();
+  </script>
+</body>
+</html>
